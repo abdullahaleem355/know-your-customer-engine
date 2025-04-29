@@ -1,27 +1,30 @@
 package com.kycengine.knowyourcustomer.service;
 
+import com.kycengine.knowyourcustomer.entity.User;
+import com.kycengine.knowyourcustomer.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 @Service
 public class CustomUserDetailService implements UserDetailsService
 {
 
-  @Override
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
-  {
-    // TODO: Replace with real user loading logic (e.g., from DB)
-    // For now, dummy user
-    if ("admin".equals(username)) {
-      return org.springframework.security.core.userdetails.User
-              .withUsername("admin")
-              .password("$2a$10$DowJonesIndexPasswordHashHere")
-              .roles("ADMIN")
-              .build();
-    }
+  @Autowired
+  private UserRepository userRepository;
 
-    throw new UsernameNotFoundException("User not found: " + username);
+  @Override
+  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+    return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
+            .password(user.getPassword())  // this is the BCrypt-hashed password from DB
+            .authorities(new ArrayList<>())
+            .build();
   }
 }
